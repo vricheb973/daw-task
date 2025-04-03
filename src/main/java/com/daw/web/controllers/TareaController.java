@@ -16,62 +16,55 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daw.persistence.entities.Tarea;
 import com.daw.services.TareaService;
+import com.daw.services.exceptions.TareaException;
+import com.daw.services.exceptions.TareaNotFoundException;
 
 @RestController
 @RequestMapping("/tareas")
 public class TareaController {
-	
+
 	@Autowired
 	private TareaService tareaService;
-	
+
 	@GetMapping
-	public ResponseEntity<List<Tarea>>  list() {
+	public ResponseEntity<List<Tarea>> list() {
 		return ResponseEntity.status(HttpStatus.OK).body(this.tareaService.findAll());
 	}
-	
+
 	@GetMapping("/{idTarea}")
-	public ResponseEntity<Tarea> findById(@PathVariable int idTarea) {
-		return ResponseEntity.ok(this.tareaService.findById(idTarea));
+	public ResponseEntity<?> findById(@PathVariable int idTarea) {
+		try {
+			return ResponseEntity.ok(this.tareaService.findById(idTarea));
+		} catch (TareaNotFoundException ex) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+		}
 	}
-	
+
 	@DeleteMapping("/{idTarea}")
 	public ResponseEntity<?> delete(@PathVariable int idTarea) {
-		if(this.tareaService.deleteById(idTarea)) {
-			return ResponseEntity.ok().build();
+		try {
+			this.tareaService.deleteById(idTarea);
+			return ResponseEntity.ok("La tarea con ID("+ idTarea +") ha sido borrada correctamente. " );
+		} catch (TareaNotFoundException ex) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
 		}
-		else {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El ID indicado no existe");
-		}
+
 	}
-	
+
 	@PostMapping
 	public ResponseEntity<Tarea> create(@RequestBody Tarea tarea) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(this.tareaService.create(tarea));
 	}
-	
+
 	@PutMapping("/{idTarea}")
-	public ResponseEntity<Tarea> update(@PathVariable int idTarea, @RequestBody Tarea tarea) {
-		return ResponseEntity.ok(this.tareaService.update(tarea));
+	public ResponseEntity<?> update(@PathVariable int idTarea, @RequestBody Tarea tarea) {
+		try {
+			return ResponseEntity.ok(this.tareaService.update(idTarea, tarea));
+		} catch (TareaNotFoundException ex) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+		} catch (TareaException ex) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 }
