@@ -2,6 +2,7 @@ package com.daw.services;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,24 +99,77 @@ public class TareaService {
 	
 	//Ejemplos Stream
 	//Obtener el número total de tareas completadas.
-	public long totalTareasCompletadas() {
+	public long totalTareasCompletadasFuncional() {
 		return this.tareaRepository.findAll().stream()
 				.filter(t -> t.getEstado() == Estado.COMPLETADA)
 				.count();
 	}
 	
+	public long totalTareasCompletadas() {
+		return this.tareaRepository.countByEstado(Estado.COMPLETADA);
+	}
+	
+	//Obtener una lista de las fechas de vencimiento de las tareas que estén en progreso.
+	public List<LocalDate> fechasVencimientoEnProgresoFuncional() {
+		return this.tareaRepository.findAll().stream()
+				.filter(t -> t.getEstado() == Estado.EN_PROGRESO)
+				.map(t -> t.getFechaVencimiento())
+				.collect(Collectors.toList());
+	}
+	
+	public List<LocalDate> fechasVencimientoEnProgreso() {
+		return this.tareaRepository.findByEstado(Estado.EN_PROGRESO).stream()
+				.map(t -> t.getFechaVencimiento())
+				.collect(Collectors.toList());
+	}
 	
 	
+	//Obtener las tareas vencidas.
+	public List<Tarea> tareasVencidasFuncional() {
+		return this.tareaRepository.findAll().stream()
+				.filter(t -> t.getFechaVencimiento().isBefore(LocalDate.now()))
+				.collect(Collectors.toList());
+	}
+	
+	public List<Tarea> tareasVencidas() {
+		return this.tareaRepository.findByFechaVencimientoBefore(LocalDate.now());
+	}
 	
 	
+	//Obtener los títulos de las tareas pendientes.
+	public List<String> titulosPendientesFuncional() {
+		return this.tareaRepository.findAll().stream()
+				.filter(t -> t.getEstado() == Estado.PENDIENTE)
+				.map(t -> t.getTitulo())
+				.collect(Collectors.toList());
+	}
+	
+	public List<String> titulosPendientes() {
+		return this.tareaRepository.findByEstado(Estado.PENDIENTE).stream()
+				.map(t -> t.getTitulo())
+				.collect(Collectors.toList());
+	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
+	//Obtener las tareas ordenadas por fecha de vencimiento.
+	public List<Tarea> ordenadasFechaVencimientoFuncional(){
+		return this.tareaRepository.findAll().stream()
+				.sorted((t1, t2) -> t1.getFechaVencimiento().compareTo(t2.getFechaVencimiento()))
+				.collect(Collectors.toList());
+	}	
+
+	public List<Tarea> ordenadasFechaVencimiento(){
+		return this.tareaRepository.findAllByOrderByFechaVencimiento();
+	}
 
 }
+
+
+
+
+
+
+
+
+
+
