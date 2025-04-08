@@ -34,14 +34,6 @@ public class TareaService {
 		return this.tareaRepository.existsById(idTarea);
 	}
 	
-	public void deleteById(int idTarea) {
-		if(!this.tareaRepository.existsById(idTarea)) {
-			throw new TareaNotFoundException("No existe la tarea con ID: " + idTarea);
-		}
-		
-		this.tareaRepository.deleteById(idTarea);
-	}
-	
 	public Tarea create(Tarea tarea) {	
 		tarea.setId(0);
 		tarea.setFechaCreacion(LocalDate.now());
@@ -69,15 +61,48 @@ public class TareaService {
 		return this.tareaRepository.save(tareaBD);
 	}
 	
+	public void deleteById(int idTarea) {
+		if(!this.tareaRepository.existsById(idTarea)) {
+			throw new TareaNotFoundException("No existe la tarea con ID: " + idTarea);
+		}
+		
+		this.tareaRepository.deleteById(idTarea);
+	}
 	
 	
+	//Ejemplos Optional
+	public boolean deleteDeclarativo(int idTarea) {
+		boolean result = false;
+		
+		if(this.tareaRepository.existsById(idTarea)) {
+			this.tareaRepository.deleteById(idTarea);
+			result = true;
+		}
+		
+		return result;
+	}
 	
+	public boolean deleteFuncional(int idTarea) {
+		return this.tareaRepository.findById(idTarea)
+				.map(t -> {
+					this.tareaRepository.deleteById(idTarea);
+					return true;
+				})
+				.orElse(false);
+	}
 	
+	public Tarea findByIdFuncional(int idTarea) {		
+		return this.tareaRepository.findById(idTarea)
+				.orElseThrow(() -> new TareaNotFoundException("No existe la tarea con ID: " + idTarea));
+	}
 	
-	
-	
-	
-	
+	//Ejemplos Stream
+	//Obtener el número total de tareas completadas.
+	public long totalTareasCompletadas() {
+		return this.tareaRepository.findAll().stream()
+				.filter(t -> t.getEstado() == Estado.COMPLETADA)
+				.count();
+	}
 	
 	
 	
